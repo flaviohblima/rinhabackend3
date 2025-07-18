@@ -1,6 +1,7 @@
 package br.com.flaviohblima.rinhabackend3.payments_processor;
 
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -11,10 +12,12 @@ public class PaymentProcessorClient implements IPaymentProcessorClient {
     private final String defaultProcessorAddress;
     private final String fallbackProcessorAddress;
 
-    public PaymentProcessorClient(RestTemplate rest) {
+    public PaymentProcessorClient(RestTemplate rest,
+                                  @Value("app.paymentProcessor.default") String defaultProcessorAddress,
+                                  @Value("app.paymentProcessor.fallback") String fallbackProcessorAddress) {
         this.rest = rest;
-        this.defaultProcessorAddress = "http://localhost:8000";
-        this.fallbackProcessorAddress = "http://localhost:8001";
+        this.defaultProcessorAddress = defaultProcessorAddress;
+        this.fallbackProcessorAddress = fallbackProcessorAddress;
     }
 
     @Override

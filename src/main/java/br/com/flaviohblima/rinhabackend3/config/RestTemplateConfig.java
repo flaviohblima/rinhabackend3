@@ -1,4 +1,4 @@
-package br.com.flaviohblima.rinhabackend3;
+package br.com.flaviohblima.rinhabackend3.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
