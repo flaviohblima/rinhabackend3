@@ -1,6 +1,7 @@
 package br.com.flaviohblima.rinhabackend3.payments;
 
 import jakarta.validation.Valid;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -13,11 +14,12 @@ public class PaymentsController {
 
     private final PaymentsService service;
 
+    @Autowired
     public PaymentsController(PaymentsService service) {
         this.service = service;
     }
 
-    @PostMapping("/")
+    @PostMapping(path = {"", "/"})
     public ResponseEntity<PaymentResponse> processPayment(@RequestBody @Valid PaymentRequest request) {
         return ResponseEntity.ok(service.processPayment(request));
     }
