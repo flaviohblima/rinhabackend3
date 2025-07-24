@@ -24,6 +24,6 @@ public class PaymentsService {
     public PaymentResponse processPayment(PaymentRequest request) {
         log.debug("{}", request);
         processorClient.processPayment(new PaymentPayload(request.correlationId(), request.amount(), Instant.now().toString()));
-        return new PaymentResponse("Payment is being processed!");
+        return new PaymentResponse("Payment request received!");
     }
 }
