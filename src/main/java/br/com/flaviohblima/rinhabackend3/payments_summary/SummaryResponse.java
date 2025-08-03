@@ -4,5 +4,5 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public record SummaryResponse(
         @JsonProperty("default") ProcessorSummary defaultProcessor,
-        ProcessorSummary fallback) {
+        @JsonProperty("fallback") ProcessorSummary fallbackProcessor) {
 }

@@ -9,11 +9,12 @@ x-service-templates:
       - LOG_LEVEL=DEBUG
       - PROCESSOR_DEFAULT=http://payment-processor-default:8080/
       - PROCESSOR_FALLBACK=http://payment-processor-fallback:8080/
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5433/rinhabackend
     expose:
       - "8080"
     networks:
       - rinhabackend3
-      - payment-processor
+#      - payment-processor
 
 services:
   app1:
@@ -22,8 +23,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.4"
-          memory: "60MB"
+          cpus: "0.3"
+          memory: "70MB"
 
   app2:
     <<: *rinhabackend3
@@ -31,8 +32,27 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.4"
-          memory: "60MB"
+          cpus: "0.3"
+          memory: "70MB"
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: postgres
+    volumes:
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_DB: "rinhabackend"
+      POSTGRES_USER: "rinha"
+      POSTGRES_PASSWORD: "backend"
+    networks:
+      - rinhabackend3
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "100MB"
 
   nginx:
     image: nginx:stable-alpine
@@ -46,15 +66,15 @@ services:
       - app2
     networks:
       - rinhabackend3
-      - payment-processor
+#      - payment-processor
     deploy:
       resources:
         limits:
-          cpus: "0.2"
+          cpus: "0.15"
           memory: "20MB"
 
 networks:
   rinhabackend3:
     driver: bridge
-  payment-processor:
-    external: true
+#  payment-processor:
+#    external: true

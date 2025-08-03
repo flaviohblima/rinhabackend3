@@ -10,4 +10,4 @@ RUN apk add --no-cache ca-certificates gcompat
 WORKDIR /app
 COPY --from=builder /app/target/rinhabackend3 /app/rinhabackend3
 EXPOSE 8080
-ENTRYPOINT ["/app/rinhabackend3"]
+ENTRYPOINT ["/app/rinhabackend3", "-Xmx70m"]
