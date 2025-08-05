@@ -1,6 +1,5 @@
 package br.com.flaviohblima.rinhabackend3.payments_processor;
 
-import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,22 +52,15 @@ public class PaymentProcessorClient implements IPaymentProcessorClient {
     }
 
     @Override
-    @CircuitBreaker(name = "process-payment", fallbackMethod = "processPaymentFallback")
     public void processPayment(PaymentPayload payment) {
         URI uri = defaultProcessorAddress.resolve("/payments");
         rest.postForEntity(uri, new HttpEntity<>(payment, headers), Object.class);
     }
 
     @Override
-    @CircuitBreaker(name = "process-payment-fallback", fallbackMethod = "processPaymentEnqueue")
-    public void processPaymentFallback(PaymentPayload payment, Throwable t) {
+    public void processPaymentFallback(PaymentPayload payment) {
         URI uri = fallbackProcessorAddress.resolve("/payments");
         rest.postForEntity(uri, new HttpEntity<>(payment, headers), Object.class);
     }
 
-    public void processPaymentEnqueue(PaymentPayload payment, Throwable t) {
-        log.error(t.getMessage(), t);
-        log.info("None of the processors are responding! Lets enqueue the payment.");
-        log.debug("Payment to enqueue {}", payment);
-    }
 }

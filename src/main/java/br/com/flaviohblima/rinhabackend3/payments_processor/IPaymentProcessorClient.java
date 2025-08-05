@@ -8,6 +8,6 @@ public interface IPaymentProcessorClient {
 
     void processPayment(PaymentPayload payment);
 
-    void processPaymentFallback(PaymentPayload payment, Throwable t);
+    void processPaymentFallback(PaymentPayload payment);
 
 }

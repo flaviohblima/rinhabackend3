@@ -7,17 +7,20 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Repository
-public interface PaymentsRepository extends JpaRepository<Payment, String> {
+public interface PaymentsRepository extends JpaRepository<Payment, UUID> {
 
-    @Query("SELECT " +
-            "   count(p) AS totalRequests," +
-            "   sum(p.amount) AS totalAmount" +
-            " FROM Payment p " +
-            " WHERE p.isProcessed = true " +
-            "   AND p.processorName = :processorName " +
-            "   AND requestedAt BETWEEN :from AND :to")
+    @Query("""
+            SELECT
+                count(p) AS totalRequests,
+                COALESCE(sum(p.amount), 0) AS totalAmount
+            FROM Payment p
+            WHERE p.isProcessed = true
+               AND p.processorName = :processorName
+               AND p.requestedAt BETWEEN :from AND :to
+            """)
     ProcessorSummary countAndSumByProcessorNameAndIsProcessedAndRequestedAtBetween(
             @Param("processorName") String processorName,
             @Param("from") Instant from, @Param("to") Instant to);

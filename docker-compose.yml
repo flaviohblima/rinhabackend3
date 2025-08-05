@@ -54,6 +54,13 @@ services:
           cpus: "0.5"
           memory: "100MB"
 
+  redis:
+    image: redis:7.0-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
   nginx:
     image: nginx:stable-alpine
     container_name: nginx-loadbalancer

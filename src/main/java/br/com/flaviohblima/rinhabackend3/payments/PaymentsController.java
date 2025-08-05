@@ -21,7 +21,7 @@ public class PaymentsController {
 
     @PostMapping(path = {"", "/"})
     public ResponseEntity<PaymentResponse> processPayment(@RequestBody @Valid PaymentRequest request) {
-        return ResponseEntity.ok(service.processPayment(request));
+        return ResponseEntity.ok(service.receivePayment(request));
     }
 
 }
