@@ -3,7 +3,7 @@ package br.com.flaviohblima.rinhabackend3.payments;
 import br.com.flaviohblima.rinhabackend3.payments_processor.PaymentProcessorService;
 import br.com.flaviohblima.rinhabackend3.payments_repository.Payment;
 import br.com.flaviohblima.rinhabackend3.payments_repository.PaymentsRepository;
-import br.com.flaviohblima.rinhabackend3.queue_service.QueueService;
+import br.com.flaviohblima.rinhabackend3.queue_service.RedisQueueService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,12 +18,12 @@ public class PaymentsService {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentsService.class);
 
-    private final QueueService queueService;
+    private final RedisQueueService queueService;
     private final PaymentsRepository repository;
     private final PaymentProcessorService paymentProcessorService;
 
     @Autowired
-    public PaymentsService(QueueService queueService,
+    public PaymentsService(RedisQueueService queueService,
                            PaymentsRepository repository,
                            PaymentProcessorService paymentProcessorService) {
         this.queueService = queueService;
@@ -37,10 +37,8 @@ public class PaymentsService {
         if (!repository.existsById(UUID.fromString(request.correlationId()))) {
             log.debug("Persist {}", request);
             repository.save(new Payment(request.correlationId(), request.amount()));
+            queueService.enqueue(request.correlationId());
         }
-
-        log.debug("Enqueue {}", request);
-        queueService.enqueue(request.correlationId());
 
         return new PaymentResponse("Payment request received!");
     }
@@ -50,8 +48,7 @@ public class PaymentsService {
         String correlationId = queueService.dequeue();
         if (correlationId == null) return;
 
-        log.debug("Dequeued {}", correlationId);
-
+        log.debug("Dequeued: {}", correlationId);
         log.debug("Find {}", correlationId);
         Optional<Payment> payment = repository.findById(UUID.fromString(correlationId));
         if (payment.isEmpty()) return;

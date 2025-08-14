@@ -1,5 +1,5 @@
 # Build
-FROM ghcr.io/graalvm/native-image-community:22 AS builder
+FROM ghcr.io/graalvm/native-image-community:24 AS builder
 WORKDIR /app
 COPY . .
 RUN ./mvnw -Pnative -DskipTests native:compile

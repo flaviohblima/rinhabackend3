@@ -9,58 +9,41 @@ x-service-templates:
       - LOG_LEVEL=DEBUG
       - PROCESSOR_DEFAULT=http://payment-processor-default:8080/
       - PROCESSOR_FALLBACK=http://payment-processor-fallback:8080/
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5433/rinhabackend
-    expose:
-      - "8080"
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://db:5432/rinhabackend
+      - SPRING_REDIS_HOST=redisqueue
+      - SPRING_REDIS_PORT=6379
     networks:
       - rinhabackend3
-#      - payment-processor
+      - payment-processor
 
-services:
-  app1:
-    <<: *rinhabackend3
-    container_name: app1
-    deploy:
-      resources:
-        limits:
-          cpus: "0.3"
-          memory: "70MB"
-
-  app2:
-    <<: *rinhabackend3
-    container_name: app2
-    deploy:
-      resources:
-        limits:
-          cpus: "0.3"
-          memory: "70MB"
-
-  postgres:
+  postgres: &postgres
     image: postgres:17-alpine
-    container_name: postgres
     volumes:
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    ports:
-      - "5433:5432"
     environment:
       POSTGRES_DB: "rinhabackend"
       POSTGRES_USER: "rinha"
       POSTGRES_PASSWORD: "backend"
     networks:
       - rinhabackend3
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: "100MB"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U rinha -d rinhabackend" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
-  redis:
+  redis: &redis
     image: redis:7.0-alpine
-    container_name: redis
-    ports:
-      - "6379:6379"
     restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - rinhabackend3
 
+services:
   nginx:
     image: nginx:stable-alpine
     container_name: nginx-loadbalancer
@@ -73,15 +56,69 @@ services:
       - app2
     networks:
       - rinhabackend3
-#      - payment-processor
+      - payment-processor
     deploy:
       resources:
         limits:
-          cpus: "0.15"
+          cpus: "0.2"
           memory: "20MB"
+
+  app1:
+    <<: *rinhabackend3
+    container_name: app1
+    expose:
+      - "8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      redisqueue:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: "75MB"
+
+  app2:
+    <<: *rinhabackend3
+    container_name: app2
+    expose:
+      - "8080"
+    depends_on:
+      db:
+        condition: service_healthy
+      redisqueue:
+        condition: service_healthy
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: "75MB"
+
+  db:
+    <<: *postgres
+    container_name: db
+    ports:
+      - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: "150MB"
+
+  redisqueue:
+    <<: *redis
+    container_name: redisqueue
+    ports:
+      - "6379:6379"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.4"
+          memory: "30MB"
 
 networks:
   rinhabackend3:
     driver: bridge
-#  payment-processor:
-#    external: true
+  payment-processor:
+    external: true

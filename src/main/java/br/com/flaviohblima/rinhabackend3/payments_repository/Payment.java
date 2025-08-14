@@ -1,13 +1,11 @@
 package br.com.flaviohblima.rinhabackend3.payments_repository;
 
 import jakarta.persistence.*;
-import org.springframework.aot.hint.annotation.Reflective;
 
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
-@Reflective
 @Entity
 @Table(name = "payments")
 public class Payment {

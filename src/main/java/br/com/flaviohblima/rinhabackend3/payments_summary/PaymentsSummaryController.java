@@ -18,7 +18,7 @@ public class PaymentsSummaryController {
         this.service = service;
     }
 
-    @GetMapping("/")
+    @GetMapping(path = {"", "/"})
     public ResponseEntity<SummaryResponse> getSummary(@RequestParam Instant from,
                                                       @RequestParam Instant to) {
         return ResponseEntity.ok(service.getSummary(from, to));

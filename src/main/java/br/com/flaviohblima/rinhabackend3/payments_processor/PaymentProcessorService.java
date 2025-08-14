@@ -3,7 +3,7 @@ package br.com.flaviohblima.rinhabackend3.payments_processor;
 import br.com.flaviohblima.rinhabackend3.payments_repository.Payment;
 import br.com.flaviohblima.rinhabackend3.payments_repository.PaymentsRepository;
 import br.com.flaviohblima.rinhabackend3.payments_repository.ProcessorName;
-import br.com.flaviohblima.rinhabackend3.queue_service.QueueService;
+import br.com.flaviohblima.rinhabackend3.queue_service.RedisQueueService;
 import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,11 +13,11 @@ import org.springframework.stereotype.Service;
 public class PaymentProcessorService {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentProcessorService.class);
-    private final QueueService queueService;
+    private final RedisQueueService queueService;
     private final PaymentsRepository repository;
     private final IPaymentProcessorClient processorClient;
 
-    public PaymentProcessorService(QueueService queueService,
+    public PaymentProcessorService(RedisQueueService queueService,
                                    PaymentsRepository repository,
                                    IPaymentProcessorClient processorClient) {
         this.queueService = queueService;
@@ -44,7 +44,7 @@ public class PaymentProcessorService {
             payment.setProcessorName(ProcessorName.FALLBACK);
             repository.save(payment);
         } catch (RuntimeException ex) {
-            enqueuePaymentForRetry(payment, ex);
+            this.enqueuePaymentForRetry(payment, ex);
         }
     }
 
